@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Uploader un PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; }
+    button { padding: 10px 16px; border-radius: 10px; border: 1px solid #e5e7eb; cursor: pointer; }
+    .url { margin-top: 12px; padding: 12px; background: #f9fafb; border-radius: 8px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>Uploader un PDF</h1>
+  <div class="card">
+    <form id="form">
+      <input id="file" type="file" accept="application/pdf" required />
+      <button type="submit">Envoyer</button>
+    </form>
+    <div id="out" class="url" style="display:none"></div>
+  </div>
+
+  <script>
+    const API = 'https://TON-WORKER.workers.dev/upload'; // <-- remplace par l’URL du Worker
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('file').files[0];
+      if (!file) return;
+      if (file.type !== 'application/pdf') { alert('Uniquement PDF'); return; }
+
+      const fd = new FormData();
+      fd.append('file', file);
+
+      const res = await fetch(API, { method: 'POST', body: fd });
+      if (!res.ok) {
+        const txt = await res.text();
+        alert('Erreur: ' + txt);
+        return;
+      }
+      const data = await res.json();
+      if (data.ok) {
+        const out = document.getElementById('out');
+        out.style.display = 'block';
+        out.innerHTML = `
+          ✅ Upload réussi<br/>
+          Lien direct: <a href="${data.url}" target="_blank">${data.url}</a>
+        `;
+      } else {
+        alert('Échec upload.');
+      }
+    });
+  </script>
+</body>
+</html>
